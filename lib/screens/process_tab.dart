@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:moon_design/moon_design.dart';
 import 'package:provider/provider.dart';
 import '../services/system_service.dart';
-import '../models/system_stats.dart';
 
 class ProcessTab extends StatefulWidget {
   const ProcessTab({super.key});

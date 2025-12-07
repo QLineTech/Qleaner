@@ -374,8 +374,57 @@ class ScannerService extends ChangeNotifier {
       }
     }
 
-    // Scan container caches (simplified for now)
-    // ...
+    // Scan container caches
+    _scanProgress["current_location"] = "Container Apps";
+    notifyListeners();
+
+    final home = Platform.environment['HOME'] ?? await _homePath;
+    final containersPath = Directory("$home/Library/Containers");
+
+    if (await containersPath.exists()) {
+      try {
+        await for (final container in containersPath.list()) {
+          if (container is Directory) {
+            final cachePath = Directory(
+              "${container.path}/Data/Library/Caches",
+            );
+            if (await cachePath.exists()) {
+              final appName = container.path
+                  .split('.')
+                  .last; // Simplified name extraction
+              final size = await _getDirectorySizeFast(cachePath.path);
+
+              if (size > 0) {
+                final loc = CacheLocation(
+                  id: "container_$appName",
+                  path: cachePath.path,
+                  name: "$appName Cache",
+                  description: "Sandboxed app cache for $appName",
+                  category: "Containers",
+                  hint: "Cache data for the sandboxed app '$appName'.",
+                  impact: "The app will recreate its cache as needed.",
+                  risk: "low",
+                  size: size,
+                  sizeHuman: humanReadableSize(size),
+                  selected: true,
+                  exists: true,
+                );
+
+                _scanResults.add(loc);
+                _scanProgress["found_count"] = _scanResults.length;
+                _scanProgress["total_size"] = _scanResults.fold(
+                  0,
+                  (sum, item) => sum + item.size,
+                );
+                notifyListeners();
+              }
+            }
+          }
+        }
+      } catch (e) {
+        // Ignore errors during container scanning
+      }
+    }
 
     _scanProgress["percent"] = 100;
     _scanProgress["current_location"] = "Complete";

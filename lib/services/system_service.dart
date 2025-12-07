@@ -26,16 +26,25 @@ class SystemService extends ChangeNotifier {
     _isMonitoring = false;
   }
 
+  bool _isUpdating = false;
+
   Future<void> _updateStats() async {
-    await Future.wait([
-      _updateCpu(),
-      _updateMemory(),
-      _updateDisk(),
-      _updateNetwork(),
-      _updateUptime(),
-      _updateProcesses(),
-    ]);
-    notifyListeners();
+    if (_isUpdating) return;
+    _isUpdating = true;
+
+    try {
+      await Future.wait([
+        _updateCpu(),
+        _updateMemory(),
+        _updateDisk(),
+        _updateNetwork(),
+        _updateUptime(),
+        _updateProcesses(),
+      ]);
+      notifyListeners();
+    } finally {
+      _isUpdating = false;
+    }
   }
 
   String _humanReadableSize(int sizeBytes) {
@@ -246,7 +255,8 @@ class SystemService extends ChangeNotifier {
 
   Future<void> _updateProcesses() async {
     try {
-      // ps -A -o pid,pcpu,pmem,comm
+      // ps -A -o pid,pcpu,pmem,rss,comm
+      // Limit to top 50 to avoid huge output parsing overhead
       final result = await Process.run('ps', [
         '-A',
         '-o',
@@ -264,15 +274,12 @@ class SystemService extends ChangeNotifier {
           final parts = line.split(RegExp(r'\s+'));
           if (parts.length >= 5) {
             // PID %CPU %MEM RSS COMM
-            // Note: COMM can contain spaces, so we join the rest
             final pid = int.tryParse(parts[0]) ?? 0;
             final cpu = double.tryParse(parts[1]) ?? 0.0;
             final memPercent = double.tryParse(parts[2]) ?? 0.0;
             final rss = (int.tryParse(parts[3]) ?? 0) * 1024; // RSS is in KB
-            final name = parts.sublist(4).join(' '); // Join the rest as name
+            final name = parts.sublist(4).join(' ');
 
-            // Filter out system processes if needed, or just keep all
-            // Clean up name (remove path)
             final shortName = name.split('/').last;
 
             processes.add(
