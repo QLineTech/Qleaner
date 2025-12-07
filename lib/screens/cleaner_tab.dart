@@ -3,7 +3,6 @@ import 'package:moon_design/moon_design.dart';
 import 'package:provider/provider.dart';
 import '../services/scanner_service.dart';
 import '../services/cleaner_service.dart';
-import '../models/cache_location.dart';
 
 class CleanerTab extends StatefulWidget {
   const CleanerTab({super.key});

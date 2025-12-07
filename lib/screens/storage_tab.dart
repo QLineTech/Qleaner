@@ -1,160 +1,74 @@
 import 'package:flutter/material.dart';
 import 'package:moon_design/moon_design.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 import '../services/system_service.dart';
+import '../widgets/ring_chart.dart';
 
-class StorageTab extends StatelessWidget {
-  const StorageTab({super.key});
+class StorageTabContent extends StatelessWidget {
+  const StorageTabContent({super.key});
 
   @override
   Widget build(BuildContext context) {
     final system = Provider.of<SystemService>(context);
     final disk = system.stats.disk;
 
-    return Scaffold(
-      backgroundColor: context.moonColors!.goku,
-      body: Column(
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
+          // Disk Visual
           Container(
+            width: 300,
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: context.moonColors!.gohan,
-              border: Border(
-                bottom: BorderSide(color: context.moonColors!.beerus),
-              ),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  "Storage Analysis",
-                  style: context.moonTypography!.heading.text24,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "Disk usage overview",
-                  style: context.moonTypography!.body.text14.copyWith(
-                    color: context.moonColors!.trunks,
-                  ),
-                ),
+                RingChart(percent: disk.percent, size: 180, strokeWidth: 12),
+                const SizedBox(height: 20),
+                const RingLegend(),
               ],
             ),
           ),
+          const SizedBox(width: 24),
 
+          // Storage Details
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: context.moonColors!.gohan,
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(32),
-                    decoration: BoxDecoration(
-                      color: context.moonColors!.gohan,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: context.moonColors!.beerus),
+                  Text(
+                    "Disk Information",
+                    style: context.moonTypography!.body.text14.copyWith(
+                      color: context.moonColors!.trunks,
                     ),
-                    child: Row(
-                      children: [
-                        // Chart
-                        SizedBox(
-                          height: 200,
-                          width: 200,
-                          child: Stack(
-                            children: [
-                              PieChart(
-                                PieChartData(
-                                  sectionsSpace: 0,
-                                  centerSpaceRadius: 70,
-                                  sections: [
-                                    PieChartSectionData(
-                                      color: context.moonColors!.piccolo,
-                                      value: disk.used.toDouble(),
-                                      title: '',
-                                      radius: 20,
-                                    ),
-                                    PieChartSectionData(
-                                      color: const Color(0xFF238636),
-                                      value: disk.free.toDouble(),
-                                      title: '',
-                                      radius: 20,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Center(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      "${disk.percent.toStringAsFixed(1)}%",
-                                      style: context
-                                          .moonTypography!
-                                          .heading
-                                          .text32,
-                                    ),
-                                    Text(
-                                      "Used",
-                                      style: context.moonTypography!.body.text12
-                                          .copyWith(
-                                            color: context.moonColors!.trunks,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 48),
-                        // Legend and Details
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildLegendItem(
-                                context,
-                                "Used Space",
-                                disk.usedHuman,
-                                context.moonColors!.piccolo,
-                              ),
-                              const SizedBox(height: 24),
-                              _buildLegendItem(
-                                context,
-                                "Free Space",
-                                disk.freeHuman,
-                                const Color(0xFF238636),
-                              ),
-                              const SizedBox(height: 24),
-                              Container(
-                                height: 1,
-                                color: context.moonColors!.beerus,
-                              ),
-                              const SizedBox(height: 24),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    "Total Capacity",
-                                    style: context.moonTypography!.body.text14
-                                        .copyWith(
-                                          color: context.moonColors!.trunks,
-                                        ),
-                                  ),
-                                  Text(
-                                    disk.totalHuman,
-                                    style:
-                                        context.moonTypography!.heading.text16,
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _StorageStat(label: "Total Capacity", value: disk.totalHuman),
+                  _StorageStat(
+                    label: "Used Space",
+                    value: disk.usedHuman,
+                    valueColor: const Color(0xFFD29922),
+                  ),
+                  _StorageStat(
+                    label: "Free Space",
+                    value: disk.freeHuman,
+                    valueColor: const Color(0xFF3FB950),
+                  ),
+                  _StorageStat(
+                    label: "Uptime",
+                    value: system.stats.uptime,
+                    isLast: true,
                   ),
                 ],
               ),
@@ -164,34 +78,61 @@ class StorageTab extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildLegendItem(
-    BuildContext context,
-    String label,
-    String value,
-    Color color,
-  ) {
-    return Row(
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: context.moonTypography!.body.text12.copyWith(
-                color: context.moonColors!.trunks,
-              ),
+class _StorageStat extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color? valueColor;
+  final bool isLast;
+
+  const _StorageStat({
+    required this.label,
+    required this.value,
+    this.valueColor,
+    this.isLast = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        border: isLast
+            ? null
+            : Border(bottom: BorderSide(color: context.moonColors!.beerus)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: context.moonTypography!.body.text14.copyWith(
+              color: context.moonColors!.trunks,
             ),
-            Text(value, style: context.moonTypography!.heading.text20),
-          ],
-        ),
-      ],
+          ),
+          Text(
+            value,
+            style: context.moonTypography!.heading.text16.copyWith(
+              color: valueColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Keep original StorageTab for backward compatibility
+class StorageTab extends StatelessWidget {
+  const StorageTab({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: context.moonColors!.goku,
+      body: const SingleChildScrollView(child: StorageTabContent()),
     );
   }
 }
