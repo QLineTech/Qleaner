@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moon_design/moon_design.dart';
 import 'package:provider/provider.dart';
 import 'services/scanner_service.dart';
 import 'services/cleaner_service.dart';
@@ -22,20 +23,23 @@ class QleanerApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'Qleaner',
-        theme: ThemeData(
-          brightness: Brightness.dark,
-          primarySwatch: Colors.blue,
-          scaffoldBackgroundColor: const Color(0xFF0D1117),
-          cardColor: const Color(0xFF161B22),
-          dividerColor: const Color(0xFF30363D),
-          colorScheme: const ColorScheme.dark(
-            primary: Color(0xFF58A6FF),
-            secondary: Color(0xFF238636),
-            surface: Color(0xFF161B22),
-            background: Color(0xFF0D1117),
-            error: Color(0xFFF85149),
-          ),
-          useMaterial3: true,
+        theme: ThemeData.dark().copyWith(
+          extensions: <ThemeExtension<dynamic>>[
+            MoonTheme(
+              tokens: MoonTokens.dark.copyWith(
+                colors: MoonColors.dark.copyWith(
+                  piccolo: const Color(0xFF58A6FF), // Accent blue
+                  hit: const Color(0xFF238636), // Success green
+                  chichi: const Color(0xFFF85149), // Error red
+                  goku: const Color(0xFF0D1117), // Background
+                  gohan: const Color(0xFF161B22), // Surface
+                  beerus: const Color(0xFF30363D), // Border
+                  trunks: const Color(0xFF8B949E), // Text secondary
+                  bulma: const Color(0xFFF0F6FC), // Text primary
+                ),
+              ),
+            ),
+          ],
         ),
         home: const MainScreen(),
       ),
