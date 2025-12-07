@@ -69,12 +69,14 @@ class NetworkStats {
   int bytesRecv;
   String sentHuman;
   String recvHuman;
+  String totalHuman;
 
   NetworkStats({
     this.bytesSent = 0,
     this.bytesRecv = 0,
     this.sentHuman = "0 B",
     this.recvHuman = "0 B",
+    this.totalHuman = "0 B",
   });
 }
 

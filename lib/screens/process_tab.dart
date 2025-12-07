@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:moon_design/moon_design.dart';
 import 'package:provider/provider.dart';
 import '../services/system_service.dart';
+import '../models/system_stats.dart';
 
 class ProcessTab extends StatefulWidget {
   const ProcessTab({super.key});
@@ -20,83 +22,175 @@ class _ProcessTabState extends State<ProcessTab> {
   }
 
   @override
-  void dispose() {
-    // Stop monitoring is handled by the service or we can stop it here if we want to save resources
-    // But since it's a singleton-ish service provided at root, we might want to keep it running or stop it.
-    // For now, let's stop it to save resources when switching tabs if we were re-creating tabs,
-    // but NavigationRail keeps state.
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final system = Provider.of<SystemService>(context);
     final stats = system.stats;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('System Monitor')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
+      backgroundColor: context.moonColors!.goku,
+      body: Column(
         children: [
-          // Stats Grid
-          GridView.count(
-            crossAxisCount: 3,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            childAspectRatio: 1.5,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            children: [
-              _buildStatCard(
-                context,
-                "CPU",
-                "${stats.cpuPercent.toStringAsFixed(1)}%",
-                "${stats.cpuCount} Cores",
-                stats.cpuPercent / 100,
-                Colors.blue,
+          // Header
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: context.moonColors!.gohan,
+              border: Border(
+                bottom: BorderSide(color: context.moonColors!.beerus),
               ),
-              _buildStatCard(
-                context,
-                "Memory",
-                stats.memory.percent.toStringAsFixed(1) + "%",
-                "${stats.memory.usedHuman} / ${stats.memory.totalHuman}",
-                stats.memory.percent / 100,
-                Colors.purple,
-              ),
-              _buildStatCard(
-                context,
-                "Network",
-                "In: ${stats.network.recvHuman}",
-                "Out: ${stats.network.sentHuman}",
-                0.5, // No progress bar for network really
-                Colors.green,
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            "Top Processes (CPU)",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: DataTable(
-              columns: const [
-                DataColumn(label: Text("PID")),
-                DataColumn(label: Text("Name")),
-                DataColumn(label: Text("CPU %")),
-                DataColumn(label: Text("Memory")),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "System Monitor",
+                  style: context.moonTypography!.heading.text24,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "Uptime: ${stats.uptime}",
+                  style: context.moonTypography!.body.text14.copyWith(
+                    color: context.moonColors!.trunks,
+                  ),
+                ),
               ],
-              rows: system.topProcessesCpu.map((p) {
-                return DataRow(
-                  cells: [
-                    DataCell(Text(p.pid.toString())),
-                    DataCell(Text(p.name)),
-                    DataCell(Text(p.cpuPercent.toStringAsFixed(1))),
-                    DataCell(Text(p.memoryHuman)),
-                  ],
-                );
-              }).toList(),
+            ),
+          ),
+
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Stats Grid
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: _buildStatCard(
+                              context,
+                              "CPU",
+                              "${stats.cpuPercent.toStringAsFixed(1)}%",
+                              stats.cpuPercent / 100,
+                              context.moonColors!.piccolo,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildStatCard(
+                              context,
+                              "Memory",
+                              "${stats.memory.percent.toStringAsFixed(1)}%",
+                              stats.memory.percent / 100,
+                              const Color(0xFFF85149),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildStatCard(
+                              context,
+                              "Network",
+                              stats.network.totalHuman,
+                              0.5,
+                              const Color(0xFF238636),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  Text(
+                    "Top Processes",
+                    style: context.moonTypography!.heading.text20,
+                  ),
+                  const SizedBox(height: 16),
+
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: context.moonColors!.gohan,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: context.moonColors!.beerus),
+                    ),
+                    child: DataTable(
+                      columns: [
+                        DataColumn(
+                          label: Text(
+                            "Process Name",
+                            style: context.moonTypography!.heading.text14
+                                .copyWith(color: context.moonColors!.trunks),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Text(
+                            "PID",
+                            style: context.moonTypography!.heading.text14
+                                .copyWith(color: context.moonColors!.trunks),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Text(
+                            "CPU %",
+                            style: context.moonTypography!.heading.text14
+                                .copyWith(color: context.moonColors!.trunks),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Text(
+                            "Memory",
+                            style: context.moonTypography!.heading.text14
+                                .copyWith(color: context.moonColors!.trunks),
+                          ),
+                        ),
+                      ],
+                      rows: system.topProcessesCpu.take(10).map((p) {
+                        return DataRow(
+                          cells: [
+                            DataCell(
+                              Text(
+                                p.name,
+                                style: context.moonTypography!.body.text14,
+                              ),
+                            ),
+                            DataCell(
+                              Text(
+                                p.pid.toString(),
+                                style: context.moonTypography!.body.text14
+                                    .copyWith(
+                                      color: context.moonColors!.trunks,
+                                    ),
+                              ),
+                            ),
+                            DataCell(
+                              Text(
+                                "${p.cpuPercent.toStringAsFixed(1)}%",
+                                style: context.moonTypography!.body.text14
+                                    .copyWith(
+                                      color: p.cpuPercent > 50
+                                          ? const Color(0xFFF85149)
+                                          : context.moonColors!.piccolo,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ),
+                            DataCell(
+                              Text(
+                                p.memoryHuman,
+                                style: context.moonTypography!.body.text14,
+                              ),
+                            ),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -106,36 +200,39 @@ class _ProcessTabState extends State<ProcessTab> {
 
   Widget _buildStatCard(
     BuildContext context,
-    String title,
+    String label,
     String value,
-    String sub,
     double progress,
     Color color,
   ) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TextStyle(color: Colors.grey[400], fontSize: 12),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: context.moonColors!.gohan,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: context.moonColors!.beerus),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: context.moonTypography!.body.text12.copyWith(
+              color: context.moonColors!.trunks,
+              fontWeight: FontWeight.bold,
             ),
-            const Spacer(),
-            Text(
-              value,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            Text(sub, style: TextStyle(color: Colors.grey[400], fontSize: 12)),
-            const SizedBox(height: 8),
-            LinearProgressIndicator(
-              value: progress.clamp(0.0, 1.0),
-              color: color,
-              backgroundColor: color.withOpacity(0.2),
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 8),
+          Text(value, style: context.moonTypography!.heading.text32),
+          const SizedBox(height: 12),
+          LinearProgressIndicator(
+            value: progress.clamp(0.0, 1.0),
+            color: color,
+            backgroundColor: context.moonColors!.beerus,
+            minHeight: 4,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ],
       ),
     );
   }
