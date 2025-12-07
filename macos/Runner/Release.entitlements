@@ -2,7 +2,33 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>com.apple.security.app-sandbox</key>
+	<key>com.apple.security.network.server</key>
 	<true/>
+	<key>com.apple.security.temporary-exception.files.home-relative-path.read-write</key>
+	<array>
+		<string>/Library/Caches/</string>
+		<string>/Library/Developer/Xcode/DerivedData/</string>
+		<string>/Library/Developer/Xcode/Archives/</string>
+		<string>/Library/Developer/Xcode/iOS DeviceSupport/</string>
+		<string>/Library/Developer/CoreSimulator/Devices/</string>
+		<string>/.npm/_cacache/</string>
+		<string>/.yarn/cache/</string>
+		<string>/.cache/pip/</string>
+		<string>/.pub-cache/</string>
+		<string>/.gradle/caches/</string>
+		<string>/.cocoapods/repos/</string>
+		<string>/Library/Application Support/Code/CachedData/</string>
+		<string>/Library/Application Support/Slack/Cache/</string>
+		<string>/Library/Application Support/discord/Cache/</string>
+		<string>/Library/Application Support/Spotify/PersistentCache/</string>
+		<string>/Library/Containers/com.docker.docker/Data/vms/</string>
+		<string>/Library/Logs/</string>
+		<string>/Library/Application Support/MobileSync/Backup/</string>
+	</array>
+	<key>com.apple.security.temporary-exception.files.absolute-path.read-write</key>
+	<array>
+		<string>/Library/Caches/</string>
+		<string>/tmp/</string>
+	</array>
 </dict>
 </plist>
